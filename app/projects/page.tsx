@@ -2,6 +2,14 @@ import ProjectCard from '@/components/ProjectCard';
 
 const projects = [
   {
+    title: 'AI Research Agent',
+    description: 'Conversational AI agent that plans, retrieves knowledge, and answers questions about ML and AI. Demonstrates the ReAct agent pattern with visible step-by-step reasoning, tool calls, and a curated knowledge base across 8 specialist domains.',
+    tags: ['AI Agents', 'NLP', 'TypeScript', 'Next.js'],
+    demoUrl: '/demos/agent',
+    githubUrl: '#',
+    gradient: 'from-violet-500 to-fuchsia-500',
+  },
+  {
     title: 'Sentiment Analyzer',
     description: 'Real-time NLP sentiment analysis using a lexicon-based approach. Analyzes text for positive, negative, and neutral sentiment with confidence scores and visual representation.',
     tags: ['NLP', 'TypeScript', 'Next.js', 'Lexicon-based'],
