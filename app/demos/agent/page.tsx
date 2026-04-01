@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 // ---- Types ----
 interface AgentStep {
@@ -283,9 +283,6 @@ function detectTopic(query: string): keyof typeof RESPONSES {
   return 'general';
 }
 
-// ---- Step timing ----
-const STEP_DELAYS = [600, 1100, 1700]; // ms when each step completes
-
 export default function AgentDemo() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -307,7 +304,18 @@ export default function AgentDemo() {
       content: query.trim(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => {
+      // Prune expandedSteps for any messages no longer in the list (keep state lean)
+      const currentIds = new Set(prev.map((m) => m.id));
+      setExpandedSteps((es) => {
+        const pruned: Record<string, boolean> = {};
+        for (const id of Object.keys(es)) {
+          if (currentIds.has(id)) pruned[id] = es[id];
+        }
+        return pruned;
+      });
+      return [...prev, userMsg];
+    });
     setInput('');
     setProcessing(true);
 
@@ -390,35 +398,43 @@ export default function AgentDemo() {
     setExpandedSteps((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Render markdown-lite (bold, bullets)
+  // Render markdown-lite (bold, bullets) — no dangerouslySetInnerHTML
+  const renderBold = (text: string): React.ReactNode[] => {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, i) =>
+      i % 2 === 1 ? <strong key={i} className="text-white font-semibold">{part}</strong> : part
+    );
+  };
+
   const renderContent = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, i) => {
-      // Bold: **text**
-      const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      if (line.startsWith('- ') || line.startsWith('• ')) {
+      const isListItem = line.startsWith('- ') || line.startsWith('• ');
+      if (isListItem) {
         return (
-          <li
-            key={i}
-            className="ml-4 list-disc text-gray-300 text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: formatted.replace(/^[-•]\s/, '') }}
-          />
+          <li key={i} className="ml-4 list-disc text-gray-300 text-sm leading-relaxed">
+            {renderBold(line.replace(/^[-•]\s/, ''))}
+          </li>
         );
       }
       if (line.trim() === '') return <div key={i} className="h-2" />;
       return (
-        <p
-          key={i}
-          className="text-gray-300 text-sm leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: formatted }}
-        />
+        <p key={i} className="text-gray-300 text-sm leading-relaxed">
+          {renderBold(line)}
+        </p>
       );
     });
   };
 
   const stepStatusIcon = (status: AgentStep['status']) => {
     if (status === 'done') return '✅';
-    if (status === 'active') return <span className="inline-block w-4 h-4 border-2 border-blue-400/40 border-t-blue-400 rounded-full animate-spin" />;
+    if (status === 'active') return (
+      <span
+        role="status"
+        aria-label="Processing step"
+        className="inline-block w-4 h-4 border-2 border-blue-400/40 border-t-blue-400 rounded-full animate-spin"
+      />
+    );
     return <span className="w-4 h-4 rounded-full border border-white/20 inline-block" />;
   };
 
@@ -452,7 +468,7 @@ export default function AgentDemo() {
             <div className="flex flex-col items-center justify-center h-40 text-center">
               <div className="text-4xl mb-3">🤖</div>
               <p className="text-gray-400 text-sm mb-1">Ask me anything about AI &amp; machine learning</p>
-              <p className="text-gray-600 text-xs">I&apos;ll show you my reasoning process as I work through the answer</p>
+              <p className="text-gray-600 text-xs">I{"'"}ll show you my reasoning process as I work through the answer</p>
             </div>
           )}
 
@@ -514,8 +530,8 @@ export default function AgentDemo() {
 
                 {/* Generating indicator */}
                 {msg.role === 'agent' && !msg.content && msg.steps && msg.steps.every((s) => s.status === 'done') && (
-                  <div className="flex items-center gap-2 px-4 py-3">
-                    <span className="w-4 h-4 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin" />
+                  <div role="status" aria-label="Generating response" className="flex items-center gap-2 px-4 py-3">
+                    <span className="w-4 h-4 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin" aria-hidden="true" />
                     <span className="text-gray-400 text-sm">Generating response…</span>
                   </div>
                 )}
@@ -565,7 +581,11 @@ export default function AgentDemo() {
               className="px-5 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
             >
               {processing ? (
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin block" />
+                <span
+                  role="status"
+                  aria-label="Sending message"
+                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin block"
+                />
               ) : (
                 '→'
               )}
