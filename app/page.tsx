@@ -5,6 +5,14 @@ import { blogPosts } from '@/data/blog-posts';
 
 const featuredProjects = [
   {
+    title: 'AI Research Agent',
+    description: 'Conversational AI agent with step-by-step reasoning and visible tool calls. Ask anything about ML and AI — watch it plan, retrieve knowledge, and respond.',
+    tags: ['AI Agents', 'TypeScript', 'Next.js'],
+    demoUrl: '/demos/agent',
+    githubUrl: '#',
+    gradient: 'from-violet-500 to-fuchsia-500',
+  },
+  {
     title: 'Sentiment Analyzer',
     description: 'Real-time NLP sentiment analysis using lexicon-based approach. Analyze text and get instant positive/negative/neutral scores.',
     tags: ['NLP', 'TypeScript', 'Next.js'],
@@ -19,14 +27,6 @@ const featuredProjects = [
     demoUrl: '/demos/image-classifier',
     githubUrl: '#',
     gradient: 'from-purple-500 to-pink-500',
-  },
-  {
-    title: 'Text Analyzer',
-    description: 'Comprehensive text analysis tool computing readability scores, keyword extraction, and linguistic statistics in real-time.',
-    tags: ['NLP', 'Statistics', 'TypeScript'],
-    demoUrl: '/demos/text-analyzer',
-    githubUrl: '#',
-    gradient: 'from-green-500 to-emerald-500',
   },
 ];
 
